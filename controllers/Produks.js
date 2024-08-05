@@ -216,6 +216,37 @@ exports.getAllProdukByKategori = async (req, res) => {
   }
 };
 
+// Mendapatkan detail produk berdasarkan ID
+exports.getDetailProdukById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const produk = await Produk.findByPk(id);
+
+    if (!produk) {
+      return res.status(404).json({ message: "Produk tidak ditemukan" });
+    }
+
+    const response = {
+      id: produk.id,
+      gambar: produk.gambar ? baseURL + produk.gambar : null,
+      nama: produk.nama,
+      harga: produk.harga,
+      deskripsiProduk: produk.deskripsiProduk,
+      dimensi: produk.dimensi,
+      warna: produk.warna,
+      finishing: produk.finishing,
+      bahan: produk.bahan,
+      linkWhatsApp: produk.linkWhatsApp,
+      linkShopee: produk.linkShopee,
+      linkTokopedia: produk.linkTokopedia,
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 
 // Menghapus produk berdasarkan ID
