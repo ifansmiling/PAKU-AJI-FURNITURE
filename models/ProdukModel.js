@@ -39,7 +39,10 @@ const Produk = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    
+    harga: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     linkShopee: {
       type: DataTypes.STRING,
       allowNull: true,

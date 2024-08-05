@@ -34,6 +34,7 @@ exports.createProduk = [
       linkShopee,
       linkWhatsApp,
       linkTokopedia,
+      harga
     } = req.body;
     const gambar = req.file ? req.file.filename : null;
 
@@ -41,6 +42,8 @@ exports.createProduk = [
       const kategori = await Kategori.findByPk(kategoriId);
       if (!kategori)
         return res.status(404).json({ message: "Kategori tidak ditemukan" });
+
+      const cleanHarga = parseInt(harga.replace(/[^0-9]/g, ''), 10);
 
       const newProduk = await Produk.create({
         id: uuidv4(),
@@ -54,6 +57,7 @@ exports.createProduk = [
         linkShopee,
         linkWhatsApp,
         linkTokopedia,
+        harga: cleanHarga,
         kategoriId,
       });
 
@@ -72,11 +76,20 @@ exports.createProduk = [
 // Mendapatkan semua produk
 exports.getAllProduk = async (req, res) => {
   try {
-    const produks = await Produk.findAll({ include: Kategori });
+    // Ambil semua produk dari database termasuk relasi Kategori
+    const produks = await Produk.findAll({
+      attributes: ['id', 'nama', 'harga', 'linkTokopedia', 'linkShopee', 'linkWhatsApp', 'gambar'], 
+      include: Kategori 
+    });
 
     const response = produks.map((produk) => ({
-      ...produk.toJSON(),
-      gambar: produk.gambar ? baseURL + produk.gambar : null,
+      id: produk.id,
+      nama: produk.nama,
+      harga: produk.harga,
+      linkTokopedia: produk.linkTokopedia,
+      linkShopee: produk.linkShopee,
+      linkWhatsApp: produk.linkWhatsApp,
+      gambar: produk.gambar ? baseURL + produk.gambar : null 
     }));
 
     res.status(200).json(response);
@@ -121,6 +134,7 @@ exports.updateProduk = [
       linkShopee,
       linkWhatsApp,
       linkTokopedia,
+      harga
     } = req.body;
     const gambar = req.file ? req.file.filename : null;
 
@@ -137,6 +151,8 @@ exports.updateProduk = [
         fs.unlinkSync(path.join("uploads/produks/", produk.gambar));
       }
 
+      const cleanHarga = parseInt(harga.replace(/[^0-9]/g, ''), 10);
+
       const updatedData = {
         nama,
         warna,
@@ -148,6 +164,7 @@ exports.updateProduk = [
         linkShopee,
         linkWhatsApp,
         linkTokopedia,
+        harga: cleanHarga,
         kategoriId,
       };
 
@@ -160,10 +177,46 @@ exports.updateProduk = [
 
       res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status500.json({ error: error.message });
     }
   },
 ];
+
+//Mendapatkan semua produk berdasarkan kategori
+exports.getAllProdukByKategori = async (req, res) => {
+  const { kategoriId } = req.params;
+
+  try {
+    // Periksa apakah kategori ada
+    const kategori = await Kategori.findByPk(kategoriId);
+    if (!kategori) {
+      return res.status(404).json({ message: "Kategori tidak ditemukan" });
+    }
+
+    // Ambil semua produk berdasarkan kategoriId
+    const produks = await Produk.findAll({
+      where: { kategoriId: kategoriId },
+      attributes: ['id', 'nama', 'harga', 'linkTokopedia', 'linkShopee', 'linkWhatsApp', 'gambar'], 
+    });
+
+    // Bangun respons dengan URL gambar yang benar
+    const response = produks.map((produk) => ({
+      id: produk.id,
+      nama: produk.nama,
+      harga: produk.harga,
+      linkTokopedia: produk.linkTokopedia,
+      linkShopee: produk.linkShopee,
+      linkWhatsApp: produk.linkWhatsApp,
+      gambar: produk.gambar ? baseURL + produk.gambar : null 
+    }));
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 // Menghapus produk berdasarkan ID
 exports.deleteProduk = async (req, res) => {

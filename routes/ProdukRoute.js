@@ -6,6 +6,7 @@ const Produks = require('../controllers/Produks.js');
 //Rute Get
 router.get('/produk', Produks.getAllProduk);
 router.get('/produk/:id', Produks.getProdukById);
+router.get('/produks/kategori/:kategoriId', Produks.getAllProdukByKategori);
 
 //Rute Post
 router.post('/produk', Produks.createProduk);
